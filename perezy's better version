@@ -1,0 +1,197 @@
+Object subclass: #Monom
+	instanceVariableNames: 'exp coef'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'function'!
+
+!Monom methodsFor: 'initialize-release' stamp: 'exp 4/3/2020 11:52'!
+initialize
+	coef :=0.
+	exp :=0.! !
+
+
+!Monom methodsFor: 'getters' stamp: 'exp 4/3/2020 11:53'!
+coef
+	^coef! !
+
+!Monom methodsFor: 'getters' stamp: 'exp 4/3/2020 11:54'!
+exp
+	^exp! !
+
+
+!Monom methodsFor: 'setters' stamp: 'initialize 4/5/2020 01:09'!
+coef:  anInteger
+	(anInteger < 0) ifTrue: [self error: 'invalid input'.] 
+	ifFalse: [(anInteger isKindOf: Integer) ifFalse: [self error: 'invalid input'.] 
+			ifTrue: [ coef := anInteger. ] ]! !
+
+!Monom methodsFor: 'setters' stamp: 'initialize 4/5/2020 01:09'!
+exp:  anInteger
+	(anInteger < 0) ifTrue: [self error: 'invalid input'.] 
+	ifFalse: [(anInteger isKindOf: Integer) ifFalse: [self error: 'invalid input'.] 
+			ifTrue: [ exp := anInteger. ] ]! !
+
+
+!Monom methodsFor: 'deffShit' stamp: 'exp 4/3/2020 13:00'!
+derivative
+	| temp1 temp2|
+	temp1 := exp.
+	temp2 := coef.
+	(exp = 0) ifTrue: [coef := 0.] ifFalse: [ coef := (temp1*temp2). exp := (temp1 - 1)].! !
+
+
+Object subclass: #Polynom
+	instanceVariableNames: 'monoms'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'function'!
+
+!Polynom methodsFor: 'initialize-release' stamp: 'initialize 4/5/2020 00:34'!
+initialze
+	monoms := Dictionary newFrom:{}.! !
+
+
+!Polynom methodsFor: 'getters' stamp: 'initialize 4/5/2020 01:31'!
+asDictionary
+	^monoms.! !
+
+!Polynom methodsFor: 'getters' stamp: 'initialize 4/4/2020 23:43'!
+monoms
+	^monoms.! !
+
+
+!Polynom methodsFor: 'math' stamp: 'initialize 4/5/2020 02:15'!
+add: aPolynom
+	| keys1 keys2 dict2 out monom value|
+	out := Polynom new.
+	(aPolynom isKindOf: Polynom) ifTrue:[
+		dict2 := aPolynom monoms.
+		(dict2 = nil) ifFalse:[
+			keys2 := dict2 keys.
+			keys2 do:[:key|
+						value:= (dict2 at: key).
+						monom := Monom new.
+						monom exp: key.
+						monom coef: value.
+						out addMonom: monom.
+					].
+			].
+		(monoms = nil) ifFalse:[
+			keys1 := monoms keys.
+			keys1 do:[:key|
+						value:= (monoms at: key).
+						monom := Monom new.
+						monom exp: key.
+						monom coef: value.
+						out addMonom: monom.
+					].
+			].
+		^out.
+			]	
+	
+	ifFalse:[self error: 'invalid input'.]
+
+! !
+
+!Polynom methodsFor: 'math' stamp: 'initialize 4/5/2020 01:09'!
+addMonom: aMonom
+	| found dict key value1 value2 keyArr|
+	
+	(aMonom isKindOf: Monom) ifTrue:[
+		dict :=monoms.
+		key :=(aMonom exp).
+		value1 := (aMonom coef).
+		(dict = nil) 
+			ifTrue:[
+				monoms := Dictionary newFrom:{key -> value1}.
+				]
+			ifFalse:[
+				found := False.
+				keyArr := dict keys.
+				
+				keyArr do: [ :tmp | (tmp = key) ifTrue:[found := True.]].
+				(found = True) ifTrue: [ value2 := value1 + (dict at: key).
+										monoms at: key put: value2.]
+								ifFalse:[monoms  at: key put: value1.].
+				
+				]
+	]
+	
+	ifFalse:[self error: 'invalid input'.]
+! !
+
+!Polynom methodsFor: 'math' stamp: 'initialize 4/5/2020 01:48'!
+derivative
+	| out dict key value1 value2 keyArr monom|
+	(monoms = nil) ifTrue:[out := Polynom new.
+							^out.]
+	ifFalse:[
+		out := Polynom new.
+		dict := monoms.
+		monom:= Monom new.
+		keyArr := dict keys.
+		keyArr do:[:tmpKey|
+						value1 := (dict at:tmpKey).
+						key := tmpKey - 1.
+						value2 := value1 * tmpKey.
+						(value2 =0) ifFalse:[monom exp: key.
+											monom coef: value2.
+											out addMonom: monom.]].
+		^out.
+									
+									
+						].
+					
+		
+	
+	
+
+! !
+
+!Polynom methodsFor: 'math' stamp: 'initialize 4/5/2020 01:59'!
+eval: anInteger
+	|out tmpout keyArr a|
+	(anInteger isKindOf: Integer) ifFalse: [self error: 'invalid input'.]
+	ifTrue:[
+		(monoms = nil) ifTrue:[^0.].
+		out := 0.
+		tmpout := 0.
+		keyArr := monoms keys.
+		keyArr do:[:tmp|
+						a := (monoms at: tmp).
+						tmpout := out + (a*(anInteger raisedTo: tmp)).
+						out := tmpout.].
+		^out. 
+		
+		
+		]		
+		
+	
+	
+
+! !
+
+!Polynom methodsFor: 'math' stamp: 'initialize 4/5/2020 01:27'!
+multiplyByMonom: aMonom
+	| dict key newKey value1 value2 keyArr|
+	
+	(aMonom isKindOf: Monom) ifTrue:[
+		dict :=Dictionary newFrom:{}.
+		key :=(aMonom exp).
+		value1 := (aMonom coef).
+		(dict = nil) 
+			ifTrue:[
+				monoms := Dictionary newFrom:{}.
+				]
+			ifFalse:[
+				keyArr := ( monoms keys).
+				keyArr do: [:tmp |
+							 	newKey := tmp + key.
+								value2 := value1 * (monoms at: tmp).
+								dict at: newKey put: value2.].
+				].
+			monoms := dict.
+	]
+	ifFalse:[self error: 'invalid input'.]
+
+! !
